@@ -1,0 +1,41 @@
+{
+  "name": "HobyMine — Find your frequency",
+  "short_name": "HobyMine",
+  "description": "An independent full-stack dating app demo. Swipe, match, and talk in real time.",
+  "start_url": "/discover",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#06070A",
+  "theme_color": "#06070A",
+  "categories": ["social", "lifestyle"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Discover",
+      "url": "/discover"
+    },
+    {
+      "name": "Messages",
+      "url": "/matches"
+    }
+  ]
+}

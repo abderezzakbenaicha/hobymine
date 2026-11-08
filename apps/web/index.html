@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#F4F5F8" />
+    <meta name="description" content="HobyMine — an independent, full-stack dating app demo. Swipe, match, and talk in real time." />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="HobyMine" />
+    <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <title>HobyMine — Find your frequency</title>
+    <script>
+      // Resolve the saved theme before the first paint so a light-theme user
+      // never sees a flash of the dark palette while React boots. Every step is
+      // guarded: a WebView that refuses storage or `matchMedia` still paints.
+      (function () {
+        var theme = 'light';
+        var mode = 'light';
+        try {
+          var stored = window.localStorage.getItem('hobymine.theme');
+          if (stored === 'dark' || stored === 'system') mode = stored;
+        } catch (error) {
+          // Private mode can refuse storage; light is the default.
+        }
+        try {
+          var dark = false;
+          if (mode === 'system' && typeof window.matchMedia === 'function') {
+            var media = window.matchMedia('(prefers-color-scheme: dark)');
+            dark = !!media && media.matches === true;
+          }
+          theme = mode === 'dark' || dark ? 'dark' : 'light';
+        } catch (error) {
+          theme = mode === 'dark' ? 'dark' : 'light';
+        }
+        try {
+          if (document.documentElement) document.documentElement.dataset.theme = theme;
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute('content', theme === 'dark' ? '#06070A' : '#F4F5F8');
+        } catch (error) {
+          // A locked-down WebView keeps the CSS default palette.
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

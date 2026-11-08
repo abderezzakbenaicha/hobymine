@@ -1,0 +1,21 @@
+node_modules/
+dist/
+apps/api/data/
+apps/api/uploads/*
+!apps/api/uploads/.gitkeep
+.env
+.env.local
+*.log
+logs/
+.DS_Store
+coverage/
+.vite/
+
+# Local build output and archived APKs stay on the machine that builds them
+*.apk
+.backup-green-assets/
+
+# Android signing material is local to the machine that builds the APK
+apps/web/android/app/keystore.properties
+apps/web/android/app/*.keystore
+apps/web/android/app/*.jks

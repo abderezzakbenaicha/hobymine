@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Adaptive-icon backdrop. A clean white tile keeps the crimson mark sharp
+         against both light and dark home-screen wallpapers; the previous pure
+         black read as a harsh block. Matches scripts/generate-logo-assets.mjs. -->
+    <color name="ic_launcher_background">#FFFFFF</color>
+</resources>

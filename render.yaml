@@ -1,0 +1,38 @@
+# Render Blueprint for the HobyMine API.
+#
+# Deploy: Render Dashboard -> New -> Blueprint, point it at this repository.
+# Every value marked `sync: false` is a secret you paste once in the dashboard;
+# it is never committed.
+#
+# The service runs the Express + Socket.io API from `apps/api`, with Postgres
+# hosted by Supabase. Uploads are stored in Supabase Storage, because Render's
+# filesystem is ephemeral.
+
+services:
+  - type: web
+    name: hobymine-api
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm ci && npm run build --workspace @hobymine/api
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 22.12.0
+      - key: NODE_ENV
+        value: production
+      # Supabase Postgres through the IPv4 session pooler.
+      - key: DATABASE_URL
+        sync: false
+      # A long random string. Render generates one on first deploy.
+      - key: JWT_SECRET
+        generateValue: true
+      # Needed for durable uploads (public `media` bucket).
+      - key: SUPABASE_URL
+        value: https://orwsthtoopdjmtoojkhb.supabase.co
+      - key: SUPABASE_SECRET_KEY
+        sync: false
+      - key: SUPABASE_STORAGE_BUCKET
+        value: media

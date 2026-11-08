@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The demo API is served over plain HTTP on the local network (for example
+  http://192.168.1.33:4000). Cleartext is therefore permitted so phones on the
+  same Wi-Fi can reach the development machine. Switch to an HTTPS API and remove
+  this file for a public production deployment.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

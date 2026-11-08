@@ -1,0 +1,35 @@
+{
+  "name": "hobymine",
+  "version": "1.0.0",
+  "private": true,
+  "description": "HobyMine — full-stack dating app demo (React PWA + Express + PostgreSQL)",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n API,WEB -c green,cyan \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "npm run dev --workspace @hobymine/api",
+    "dev:web": "npm run dev --workspace @hobymine/web",
+    "build": "npm run build --workspace @hobymine/web && npm run build --workspace @hobymine/api",
+    "start": "npm run start --workspace @hobymine/api",
+    "typecheck": "npm run typecheck --workspace @hobymine/api && npm run typecheck --workspace @hobymine/web",
+    "test": "npm run test --workspace @hobymine/api",
+    "test:supabase": "node scripts/test-supabase.mjs",
+    "db:supabase": "node scripts/apply-supabase-schema.mjs",
+    "migrate:supabase": "node scripts/migrate-local-to-supabase.mjs",
+    "migrate:uploads": "node scripts/migrate-uploads-to-supabase.mjs",
+    "seed:reset": "npm run seed:reset --workspace @hobymine/api",
+    "seed:profiles": "npm run seed:profiles --workspace @hobymine/api",
+    "seed:clear": "npm run seed:clear --workspace @hobymine/api",
+    "db:recover": "npm run db:recover --workspace @hobymine/api",
+    "art": "node scripts/generate-seed-art.mjs",
+    "countries": "node scripts/generate-countries.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "world-countries": "^5.1.0"
+  },
+  "engines": {
+    "node": ">=20.19"
+  }
+}

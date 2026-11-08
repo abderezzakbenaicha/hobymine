@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- HobyMine brand accent. Overrides the indigo defaults that ship with
+         the Capacitor Android library so native chrome (theme accents,
+         dialogs and the status bar) matches the crimson web theme. -->
+    <color name="colorPrimary">#EC1350</color>
+    <color name="colorPrimaryDark">#8B0028</color>
+    <color name="colorAccent">#EC1350</color>
+</resources>
