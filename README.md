@@ -659,10 +659,10 @@ The Android application ID is `com.hobymine.app` and the launcher label is **Hob
 Physical devices cannot use `localhost`, so the APK ships with the cloud API address. The build default is set in `apps/web/.env.production`:
 
 ```dotenv
-VITE_API_URL=https://hobymine-api.onrender.com
+VITE_API_URL=https://hobymine-api-production.up.railway.app
 ```
 
-That service is described in [DEPLOY.md](DEPLOY.md): Express + Socket.io on Render, Postgres and uploads in Supabase, no dependency on the development PC. The app works from any network while the Render service is up.
+That service is described in [DEPLOY.md](DEPLOY.md): Express + Socket.io on Railway (serving the built PWA from the same origin), Postgres and uploads in Supabase, no dependency on the development PC. The app works from any network while the Railway service is up.
 
 The address baked into the APK is only a default. If the service is renamed or the API moves, open the app and go to **Welcome → Server** (signed out) or **Profile → Server connection** (signed in). The sheet offers three ways to recover:
 
@@ -847,15 +847,15 @@ Update `VITE_API_URL` in `apps/web/.env.production` (or set it in the shell), th
 
 ### Emulator note
 
-For an Android emulator, the host machine is reachable at `10.0.2.2`. Build with `VITE_API_URL=http://10.0.2.2:4000` instead, or change the address at runtime under **Server settings**. Without a build-time URL, the native app falls back to the cloud API address in `apps/web/src/lib/apiConfig.ts` (`https://hobymine-api.onrender.com`).
+For an Android emulator, the host machine is reachable at `10.0.2.2`. Build with `VITE_API_URL=http://10.0.2.2:4000` instead, or change the address at runtime under **Server settings**. Without a build-time URL, the native app falls back to the cloud API address in `apps/web/src/lib/apiConfig.ts` (`https://hobymine-api-production.up.railway.app`).
 
 ### Cloud API
 
-The shipping app talks to the Render service in [DEPLOY.md](DEPLOY.md). To point a build somewhere else, set `VITE_API_URL` and rebuild the APK; HTTPS needs no extra Android network policy. Local development still uses the LAN server described above.
+The shipping app talks to the Railway service in [DEPLOY.md](DEPLOY.md). To point a build somewhere else, set `VITE_API_URL` and rebuild the APK; HTTPS needs no extra Android network policy. Local development still uses the LAN server described above.
 
 ### Backend requirement
 
-An APK cannot run the Express server by itself. The API must be reachable from the device; the shipping build points at Render, and local testing points at the development PC on port 4000.
+An APK cannot run the Express server by itself. The API must be reachable from the device; the shipping build points at Railway, and local testing points at the development PC on port 4000.
 
 ---
 

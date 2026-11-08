@@ -20,11 +20,11 @@ import { useSyncExternalStore } from 'react';
 export const API_BASE_STORAGE_KEY = 'hobymine.apiBase';
 
 /**
- * Default cloud address baked into the APK. It points at the Render service
- * declared in `render.yaml`; users can change it in the app without a rebuild.
+ * Default cloud address baked into the APK. It points at the Railway service
+ * described in `DEPLOY.md`; users can change it in the app without a rebuild.
  * Keep in sync with `apps/web/.env.production`.
  */
-export const NATIVE_FALLBACK_BASE = 'https://hobymine-api.onrender.com';
+export const NATIVE_FALLBACK_BASE = 'https://hobymine-api-production.up.railway.app';
 
 const isNativeShell =
   typeof window !== 'undefined' &&
