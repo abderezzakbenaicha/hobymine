@@ -24,7 +24,7 @@ Browser / PWA ─HTTPS/WSS──>  (apps/api + apps/web/dist)      └──>  S
 | Setting | Value |
 | --- | --- |
 | Source | GitHub `abderezzakbenaicha/hobymine`, branch `main` |
-| Builder | Nixpacks / Railpack auto-detect (Node) |
+| Builder | Railpack (Railway default, Node auto-detect) |
 | Node | 22.12.0, pinned by `.nvmrc` and `.node-version` |
 | Build command | `npm install --include=dev --no-audit --no-fund && npm run build` |
 | Start command | `npm start` |
