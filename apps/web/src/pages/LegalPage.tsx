@@ -10,7 +10,7 @@ export function LegalPage({ kind }: { kind: LegalKind }) {
   return (
     <div className="relative min-h-dvh bg-canvas text-white">
       <div className="app-ambient" aria-hidden="true" />
-      <div className="relative z-10 mx-auto w-full max-w-3xl px-5 pb-[calc(4rem+max(var(--safe-bottom,0px),env(safe-area-inset-bottom,0px)))] pt-[calc(2rem+max(var(--safe-top,0px),env(safe-area-inset-top,0px)))] sm:px-8">
+      <div className="relative z-10 mx-auto w-full max-w-3xl px-5 pb-[calc(4rem+min(max(var(--safe-bottom,0px),env(safe-area-inset-bottom,0px)),3.5rem))] pt-[calc(2rem+min(max(var(--safe-top,0px),env(safe-area-inset-top,0px)),3.5rem))] sm:px-8">
         <div className="flex items-center justify-between gap-3">
           <button
             type="button"

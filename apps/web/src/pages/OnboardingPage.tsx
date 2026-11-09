@@ -497,7 +497,7 @@ export function OnboardingPage() {
     <div className="relative min-h-dvh overflow-x-hidden bg-canvas">
       <div className="app-ambient" aria-hidden="true" />
 
-      <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-[28rem] flex-col px-5 pb-[calc(2rem+max(var(--safe-bottom,0px),env(safe-area-inset-bottom,0px)))] pt-[calc(2rem+max(var(--safe-top,0px),env(safe-area-inset-top,0px)))] sm:px-8">
+      <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-[28rem] flex-col px-5 pb-[calc(2rem+min(max(var(--safe-bottom,0px),env(safe-area-inset-bottom,0px)),3.5rem))] pt-[calc(2rem+min(max(var(--safe-top,0px),env(safe-area-inset-top,0px)),3.5rem))] sm:px-8">
         <div className="flex items-center justify-between">
           <Logo />
           <span className="text-[0.625rem] font-bold uppercase tracking-[0.22em] text-ink-500">

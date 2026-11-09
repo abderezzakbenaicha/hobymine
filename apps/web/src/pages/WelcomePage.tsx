@@ -264,7 +264,7 @@ export function WelcomePage() {
         </section>
 
         {/* Auth card */}
-        <section className="flex min-h-[calc(100dvh-var(--safe-top,0px))] flex-col justify-center px-5 pb-[calc(2.5rem+max(var(--safe-bottom,0px),env(safe-area-inset-bottom,0px)))] pt-10 sm:px-10 lg:border-l lg:border-white/[0.06] lg:bg-canvas/60 lg:backdrop-blur-sm">
+        <section className="flex min-h-[calc(100dvh-var(--safe-top,0px))] flex-col justify-center px-5 pb-[calc(2.5rem+min(max(var(--safe-bottom,0px),env(safe-area-inset-bottom,0px)),3.5rem))] pt-10 sm:px-10 lg:border-l lg:border-white/[0.06] lg:bg-canvas/60 lg:backdrop-blur-sm">
           <div className="mx-auto w-full max-w-[26.25rem]">
             <div className="flex items-center justify-between lg:hidden">
               <Logo />

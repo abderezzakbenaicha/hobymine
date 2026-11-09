@@ -9,7 +9,7 @@ export function NotFoundPage() {
   return (
     <div className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-canvas px-6 text-center">
       <div className="app-ambient" aria-hidden="true" />
-      <div className="relative z-10 w-full max-w-md pb-[calc(1.5rem+max(var(--safe-bottom,0px),env(safe-area-inset-bottom,0px)))] pt-[calc(1.5rem+max(var(--safe-top,0px),env(safe-area-inset-top,0px)))]">
+      <div className="relative z-10 w-full max-w-md pb-[calc(1.5rem+min(max(var(--safe-bottom,0px),env(safe-area-inset-bottom,0px)),3.5rem))] pt-[calc(1.5rem+min(max(var(--safe-top,0px),env(safe-area-inset-top,0px)),3.5rem))]">
         <div className="relative mx-auto w-fit">
           <span className="absolute inset-0 animate-pulse-ring rounded-full border border-neon/30" />
           <LogoMark className="h-16 w-16" />

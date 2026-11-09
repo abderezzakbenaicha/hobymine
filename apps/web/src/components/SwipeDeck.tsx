@@ -296,7 +296,7 @@ export function SwipeDeck({
                 key={user.id}
                 className="absolute inset-0 overflow-hidden rounded-[1.75rem] border border-white/[0.06] sm:rounded-[2.25rem]"
                 style={{
-                  transform: `translateY(${depth * 13}px) scale(${1 - depth * 0.045})`,
+                  transform: `translateY(${depth * 8}px) scale(${1 - depth * 0.035})`,
                   opacity: depth === 1 ? 0.8 : 0.45,
                   zIndex: 20 - depth,
                   filter: depth === 2 ? 'saturate(0.65)' : 'saturate(0.9)',
@@ -350,8 +350,11 @@ export function SwipeDeck({
         )}
       </div>
 
+      {/* The stacked cards stay inside the front card's footprint, and the
+          action bar keeps a clear gap plus a higher z-index: the buttons can
+          never sit underneath the card or its shadow. */}
       {top && (
-        <div className="swipe-actions mt-2 flex w-full max-w-[26.875rem] shrink-0 items-center justify-center gap-3 pb-2 sm:mt-4 sm:gap-5 sm:pb-3">
+        <div className="swipe-actions relative z-30 mt-5 flex w-full max-w-[26.875rem] shrink-0 items-center justify-center gap-3 pb-1 sm:mt-6 sm:gap-5 sm:pb-2">
           <button
             type="button"
             onClick={() => trigger('pass')}

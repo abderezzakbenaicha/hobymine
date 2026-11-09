@@ -37,7 +37,7 @@ export function SuperLikeAlert({
   return (
     <div
       aria-live="polite"
-      className="pointer-events-none fixed inset-x-0 top-[max(0.75rem,var(--safe-top,0px),env(safe-area-inset-top,0px))] z-[70] flex justify-center px-4"
+      className="pointer-events-none fixed inset-x-0 top-[min(max(0.75rem,var(--safe-top,0px),env(safe-area-inset-top,0px)),4rem)] z-[70] flex justify-center px-4"
     >
       <AnimatePresence>
         {alert && (

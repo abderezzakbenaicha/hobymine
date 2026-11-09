@@ -784,7 +784,7 @@ export function AppShell() {
           className={cn(
             'mx-auto w-full max-w-[73.75rem] px-4 pb-5 pt-3 sm:px-6 sm:pb-6 sm:pt-4 lg:px-8 lg:py-8',
             isDiscover &&
-              'max-lg:flex max-lg:min-h-full max-lg:flex-col max-lg:pb-3 max-lg:pt-2.5',
+              'max-lg:flex max-lg:min-h-full max-lg:flex-col max-lg:pb-2 max-lg:pt-2',
           )}
         >
           <Outlet />
@@ -792,7 +792,7 @@ export function AppShell() {
       </main>
 
       <nav className="bottom-nav relative z-40 shrink-0 border-t border-white/[0.07] bg-canvas/90 safe-bottom-nav safe-left safe-right backdrop-blur-2xl lg:hidden">
-        <div className="mx-auto grid max-w-md grid-cols-4 px-1.5 pb-1 pt-1.5">
+        <div className="mx-auto grid min-h-[3.25rem] max-w-md grid-cols-4 px-1.5 pb-1 pt-1">
           {NAV_ITEMS.map((item) => {
             const active =
               item.to === '/matches'

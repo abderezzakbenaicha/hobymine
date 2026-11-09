@@ -29,6 +29,14 @@ const Device = registerPlugin<DevicePlugin>('HobymineDevice');
 
 const EMPTY: SafeAreaInsets = { top: 0, bottom: 0, left: 0, right: 0 };
 
+/*
+ * Upper bounds in CSS pixels. A real status bar is 24-40 CSS px and a
+ * navigation bar at most ~48, so any larger value means a shell sent
+ * physical pixels. Clamping here keeps the top bar, the bottom navigation
+ * and the card from being crushed even on a misbehaving build.
+ */
+const MAX_INSET: SafeAreaInsets = { top: 56, bottom: 56, left: 80, right: 80 };
+
 let insets: SafeAreaInsets = EMPTY;
 const listeners = new Set<(value: SafeAreaInsets) => void>();
 
@@ -37,7 +45,7 @@ function normalize(value: Partial<SafeAreaInsets>): SafeAreaInsets {
   for (const key of ['top', 'bottom', 'left', 'right'] as const) {
     const raw = value[key];
     if (typeof raw === 'number' && Number.isFinite(raw)) {
-      next[key] = Math.max(0, Math.round(raw));
+      next[key] = Math.min(Math.max(0, Math.round(raw)), MAX_INSET[key]);
     }
   }
   return next;

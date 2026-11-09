@@ -292,7 +292,7 @@ export function DiscoverPage() {
 
   return (
     <div className="animate-slide-up max-lg:flex max-lg:min-h-full max-lg:flex-1 max-lg:flex-col">
-      <div className="flex items-center justify-between gap-2 sm:items-end sm:gap-4">
+      <div className="flex items-center justify-between gap-1.5 sm:items-end sm:gap-4">
         <div className="min-w-0 flex-1">
           <p className="hidden items-center gap-2 text-[0.625rem] font-bold uppercase tracking-[0.28em] text-neon-soft sm:flex">
             <span className="h-1 w-1 rounded-full bg-neon shadow-glow-sm" aria-hidden="true" />
@@ -320,11 +320,11 @@ export function DiscoverPage() {
             </p>
           )}
         </div>
-        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+        <div className="flex min-w-0 shrink-0 items-center gap-1 sm:gap-2">
           <LocationModeToggle
             mode={locationMode}
             onChange={(mode) => void setLocationMode(mode)}
-            className="shrink-0"
+            className="min-w-0 shrink"
             compact
           />
           <button
@@ -399,7 +399,7 @@ export function DiscoverPage() {
           {loading ? (
             <div className="flex h-full min-h-0 flex-col">
               <Skeleton className="swipe-stage w-full flex-1 rounded-[1.75rem] sm:rounded-[2.25rem] lg:h-[min(72vh,700px)] lg:flex-none" />
-              <div className="mt-3 flex shrink-0 items-center justify-center gap-3 sm:gap-5">
+              <div className="mt-5 flex shrink-0 items-center justify-center gap-3 pb-1 sm:mt-6 sm:gap-5 sm:pb-2">
                 <Skeleton className="h-12 w-12 rounded-full sm:h-14 sm:w-14" />
                 <Skeleton className="h-16 w-16 rounded-full sm:h-[4.25rem] sm:w-[4.25rem]" />
                 <Skeleton className="h-10 w-10 rounded-full sm:h-11 sm:w-11" />

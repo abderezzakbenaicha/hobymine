@@ -182,7 +182,7 @@ export function ConnectionStatus() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -18 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-x-0 top-0 z-[45] px-2 pt-[max(0.5rem,var(--safe-top,0px),env(safe-area-inset-top,0px))]"
+            className="fixed inset-x-0 top-0 z-[45] px-2 pt-[min(max(0.5rem,var(--safe-top,0px),env(safe-area-inset-top,0px)),3.5rem)]"
           >
             <div
               role="alert"

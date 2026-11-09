@@ -26,7 +26,7 @@ export function LocationModeToggle({
   return (
     <div
       className={cn(
-        'grid grid-cols-2 gap-1 rounded-2xl border border-white/8 bg-ink-900/90 p-1',
+        'grid grid-cols-2 gap-0.5 rounded-2xl border border-white/8 bg-ink-900/90 p-1',
         className,
       )}
       role="group"
@@ -44,15 +44,15 @@ export function LocationModeToggle({
             title={option.label}
             className={cn(
               'flex items-center justify-center gap-1.5 rounded-xl font-semibold transition',
-              compact ? 'px-2.5 py-1.5 text-[0.6875rem]' : 'px-3 py-2.5 text-xs',
+              compact ? 'px-2 py-1.5 text-[0.6875rem]' : 'px-3 py-2.5 text-xs',
               active
                 ? 'bg-neon text-ink-950 shadow-glow-sm'
                 : 'text-ink-300 hover:bg-white/5 hover:text-white',
             )}
           >
             <option.icon className={cn('shrink-0', compact ? 'h-3.5 w-3.5' : 'h-4 w-4')} />
-            {/* Very narrow phones get icon-only controls so the page title
-                keeps its full width instead of ellipsizing. */}
+            {/* Very narrow phones get icon-only controls so the page title and
+                the filter button always fit on one row. */}
             <span className={compact ? 'max-[389px]:hidden' : undefined}>
               {option.label}
             </span>

@@ -26,6 +26,12 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 @CapacitorPlugin(name = "HobymineDevice")
 public class HobymineDevice extends Plugin {
 
+    /** Upper bounds for a realistic status/navigation bar, in CSS pixels. */
+    private static final int MAX_VERTICAL_CSS = 56;
+    private static final int MAX_HORIZONTAL_CSS = 80;
+
+    // Insets are kept in physical pixels (as reported by WindowInsets) and
+    // converted to CSS pixels only when they cross the bridge.
     private int top = 0;
     private int bottom = 0;
     private int left = 0;
@@ -92,11 +98,24 @@ public class HobymineDevice extends Plugin {
         if (density <= 0f) density = 1f;
 
         JSObject result = new JSObject();
-        result.put("top", Math.round(top / density));
-        result.put("bottom", Math.round(bottom / density));
-        result.put("left", Math.round(left / density));
-        result.put("right", Math.round(right / density));
+        // The caps are a last line of defence: a status bar is never taller
+        // than ~3rem in CSS pixels, so a larger value means we were handed
+        // physical pixels and must not let it blow the layout apart.
+        result.put("top", toCssPixels(top, density, MAX_VERTICAL_CSS));
+        result.put("bottom", toCssPixels(bottom, density, MAX_VERTICAL_CSS));
+        result.put("left", toCssPixels(left, density, MAX_HORIZONTAL_CSS));
+        result.put("right", toCssPixels(right, density, MAX_HORIZONTAL_CSS));
         return result;
+    }
+
+    /**
+     * Converts one inset from physical to CSS pixels and clamps it to a value a
+     * real Android device can produce.
+     */
+    private int toCssPixels(int physicalPixels, float density, int maxCss) {
+        int css = Math.round(physicalPixels / density);
+        if (css < 0) return 0;
+        return Math.min(css, maxCss);
     }
 
     /** Pushes fresh insets to the web layer after rotation or a bar change. */

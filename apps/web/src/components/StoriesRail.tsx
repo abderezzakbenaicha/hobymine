@@ -76,8 +76,8 @@ export function StoriesRail() {
   };
 
   return (
-    <section aria-label="Stories" className="mt-3 sm:mt-4">
-      <div className="mb-2 flex items-center justify-between gap-2">
+    <section aria-label="Stories" className="mt-2 sm:mt-4">
+      <div className="mb-1.5 flex items-center justify-between gap-2 sm:mb-2">
         <h2 className="flex items-center gap-1.5 text-[0.625rem] font-bold uppercase tracking-[0.22em] text-ink-400">
           <Sparkles className="h-3 w-3 text-neon" aria-hidden="true" />
           Stories
