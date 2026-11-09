@@ -11,8 +11,6 @@ interface AuthState {
   user: MeUser | null;
   status: Status;
   error: string | null;
-  /** Sign up / reset codes are returned by the API outside production. */
-  devCode: string | null;
   bootstrap: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   register: (input: {
@@ -25,12 +23,10 @@ interface AuthState {
     interestedIn: 'women' | 'men' | 'everyone';
     /** Mandatory 18+ confirmation from the sign up checkbox. */
     ageConfirmed: boolean;
-  }) => Promise<{ devCode?: string }>;
+  }) => Promise<void>;
   refresh: () => Promise<void>;
   forgotPassword: (email: string) => Promise<{ devCode?: string }>;
   resetPassword: (email: string, code: string, password: string) => Promise<void>;
-  verifyEmail: (email: string, code: string) => Promise<void>;
-  resendVerification: (email: string) => Promise<{ devCode?: string; alreadyVerified?: boolean }>;
   setUser: (user: MeUser) => void;
   clearError: () => void;
   logout: () => void;
@@ -55,7 +51,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   status: storedToken ? 'idle' : 'ready',
   error: null,
-  devCode: null,
 
   bootstrap: async () => {
     const token = get().token;
@@ -103,20 +98,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   register: async (input) => {
     set({ error: null });
     try {
-      const { token, user, devCode } = await api.post<AuthResponse>('/api/auth/register', {
+      const { token, user } = await api.post<AuthResponse>('/api/auth/register', {
         ...input,
         name: input.name.trim(),
         email: input.email.trim(),
       });
       persistToken(token);
-      set({
-        token,
-        user,
-        status: 'ready',
-        error: null,
-        devCode: devCode ?? null,
-      });
-      return { devCode: devCode ?? undefined };
+      set({ token, user, status: 'ready', error: null });
     } catch (error) {
       set({ error: messageFor(error, 'Could not create account') });
       throw error;
@@ -166,36 +154,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  verifyEmail: async (email: string, code: string) => {
-    set({ error: null });
-    try {
-      const { user } = await api.post<{ user: MeUser }>('/api/auth/verify-email', {
-        email: email.trim(),
-        code: code.trim(),
-      });
-      set({ user, devCode: null });
-    } catch (error) {
-      set({ error: messageFor(error, 'Could not verify email') });
-      throw error;
-    }
-  },
-
-  resendVerification: async (email: string) => {
-    set({ error: null });
-    try {
-      const { devCode, alreadyVerified } = await api.post<{
-        sent: boolean;
-        devCode?: string;
-        alreadyVerified?: boolean;
-      }>('/api/auth/resend-verification', { email: email.trim() });
-      set({ devCode: devCode ?? null });
-      return { devCode, alreadyVerified };
-    } catch (error) {
-      set({ error: messageFor(error, 'Could not resend verification') });
-      throw error;
-    }
-  },
-
   setUser: (user) => set({ user }),
   clearError: () => set({ error: null }),
 
@@ -203,6 +161,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     persistToken(null);
     disconnectSocket();
     useChatStore.getState().reset();
-    set({ token: null, user: null, status: 'ready', error: null, devCode: null });
+    set({ token: null, user: null, status: 'ready', error: null });
   },
 }));

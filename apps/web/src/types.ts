@@ -83,7 +83,7 @@ export interface Preferences {
 
 export interface MeUser extends PublicUser {
   email: string;
-  /** False until the six digit code sent at sign up has been confirmed. */
+  /** Set at sign up; kept for clients that still read the flag. */
   emailVerified: boolean;
   readReceipts: boolean;
   plusUntil: string | null;
@@ -254,8 +254,6 @@ export interface VideoAllowance {
 export interface AuthResponse {
   token: string;
   user: MeUser;
-  /** Present outside production: the demo has no mail provider. */
-  devCode?: string;
 }
 
 export interface ApiErrorBody {

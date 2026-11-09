@@ -184,7 +184,7 @@ export function WelcomePage() {
           ageConfirmed,
         });
         toast.success('Your account is ready', {
-          description: 'Enter the six digit code we sent to confirm your email.',
+          description: 'Welcome to HobyMine.',
         });
       }
       const current = useAuthStore.getState().user;

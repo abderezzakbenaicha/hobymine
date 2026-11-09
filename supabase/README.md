@@ -29,10 +29,10 @@ and writes a JSON report to `logs/supabase-connection-*.json`.
 
 ## Current status
 
-- All 18 tables exist: `users`, `preferences`, `swipes`, `matches`, `messages`,
+- All 17 tables exist: `users`, `preferences`, `swipes`, `matches`, `messages`,
   `stories`, `story_likes`, `story_views`, `blocks`, `reports`, `verifications`,
   `call_usage`, `video_usage`, `like_usage`, `message_reactions`,
-  `password_resets`, `email_verifications`, `profile_views`.
+  `password_resets`, `profile_views`.
 - Row Level Security is enabled on every table. The publishable key can see no
   rows; the Express API connects with a privileged role that bypasses RLS.
 - Realtime publication includes `messages`, `stories`, `story_likes`,

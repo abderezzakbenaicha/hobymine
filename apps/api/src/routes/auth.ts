@@ -21,11 +21,8 @@ function hashCode(code: string): string {
 
 export const authRouter = Router();
 
-/**
- * Sign up verification and the password reset flow hand out the same kind of
- * six digit code; only the table they live in differs.
- */
-type CodeTable = 'password_resets' | 'email_verifications';
+/** The forgot password flow hands out a six digit code stored in this table. */
+type CodeTable = 'password_resets';
 
 const CODE_TTL_MS = 10 * 60 * 1000;
 const CODE_MAX_ATTEMPTS = 5;
@@ -134,8 +131,9 @@ authRouter.post(
     await sql(
       `INSERT INTO users
         (id, email, password_hash, name, age, gender, bio, job, city, country_code,
-         lat, lng, interests, photos, age_confirmed_at, terms_accepted_at, terms_version)
-       VALUES ($1,$2,$3,$4,$5,$6,'','','',$7,$8,$9,'[]'::jsonb,'[]'::jsonb,NOW(),NOW(),$10)`,
+         lat, lng, interests, photos, email_verified, age_confirmed_at, terms_accepted_at,
+         terms_version)
+       VALUES ($1,$2,$3,$4,$5,$6,'','','',$7,$8,$9,'[]'::jsonb,'[]'::jsonb,TRUE,NOW(),NOW(),$10)`,
       [
         userId,
         input.email.toLowerCase(),
@@ -159,16 +157,11 @@ authRouter.post(
     if (!user) throw new ApiError(500, 'Could not create account');
     const preferences = await getPreferences(userId);
 
-    // Confirm the address before the account can take part: the code is stored
-    // hashed and, because there is no mail provider in this demo, handed back
-    // to the client outside production.
-    const code = await issueCode('email_verifications', userId);
-    console.log(`[hobymine] Email verification code for ${user.email}: ${code}`);
-
+    // Sign up is complete at this point: there is no email code to redeem, so
+    // the account is usable right away.
     res.status(201).json({
       token: signToken(userId),
       user: toMeUser(user, preferences),
-      ...(env.isProduction ? {} : { devCode: code }),
     });
   }),
 );
@@ -266,52 +259,6 @@ authRouter.post(
       user.id,
     ]);
     res.json({ ok: true });
-  }),
-);
-
-const verifyEmailSchema = z.object({
-  email: z.string().trim().email('Enter a valid email').max(254),
-  code: z.string().trim().regex(/^\d{6}$/, 'Enter the 6 digit code'),
-});
-
-/**
- * Confirms the address a new account signed up with. The client is already
- * signed in at this point, so only the address and the code are needed.
- */
-authRouter.post(
-  '/verify-email',
-  asyncHandler(async (req, res) => {
-    const input = parseBody(verifyEmailSchema, req.body);
-    const user = await findUserByEmail(input.email);
-    if (!user) throw new ApiError(400, 'That code is not valid.', 'invalid_code');
-
-    await consumeCode('email_verifications', user.id, input.code);
-    await sql('UPDATE users SET email_verified = TRUE WHERE id = $1', [user.id]);
-
-    const refreshed = (await findUser(user.id)) ?? user;
-    const preferences = await getPreferences(user.id);
-    res.json({ user: toMeUser(refreshed, preferences) });
-  }),
-);
-
-/** Sends a fresh verification code when the first one expired or was lost. */
-authRouter.post(
-  '/resend-verification',
-  asyncHandler(async (req, res) => {
-    const input = parseBody(forgotPasswordSchema, req.body);
-    const user = await findUserByEmail(input.email);
-    if (!user) throw new ApiError(404, 'Profile not found', 'not_found');
-    if (user.email_verified) {
-      res.json({ sent: true, alreadyVerified: true });
-      return;
-    }
-
-    const code = await issueCode('email_verifications', user.id);
-    console.log(`[hobymine] Email verification code for ${user.email}: ${code}`);
-    res.json({
-      sent: true,
-      ...(env.isProduction ? {} : { devCode: code }),
-    });
   }),
 );
 

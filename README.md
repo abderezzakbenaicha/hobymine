@@ -69,7 +69,7 @@ Built as a **React 18 + Vite PWA**, an **Express + Socket.io API**, and **Postgr
 - Searchable country picker shared by onboarding, profile editing, preferences, and the discovery filter sheet.
 - Profile strength checklist and public preview.
 - Selfie verification flow with an instant demo approval and verified badges across the app.
-- **Email confirmation at sign up**: a six digit code confirms the address before the rest of the app unlocks, with a resend button, a one-minute cooldown and a five-guess limit.
+- **Instant sign up**: an email address and password create a usable account straight away. There is no confirmation code and no email transport to configure.
 - **Mandatory 18+ confirmation**: sign up requires an explicit “I am 18 or older” checkbox, enforced again by the API and recorded with a timestamp.
 - **Terms of Service and Privacy Policy**: readable in-app at `/legal/terms` and `/legal/privacy`, linked from sign up, the profile account settings, and discovery preferences.
 - Report and block tools on every profile and chat screen, a safety centre, and a mutual block list.
@@ -148,20 +148,11 @@ browser, a private window, or your phone):
 node apps/api/scripts/create-second-caller.mjs   # prints a second account that is matched with the demo account
 ```
 
-### Confirming your email
+### Signing up
 
-Signing up is followed by a six digit confirmation code, so only reachable
-addresses can take part. The code is stored hashed for ten minutes, costs
-`POST /api/auth/verify-email` to redeem, is refused after five wrong guesses
-and cannot be reused; `POST /api/auth/resend-verification` issues a new one
-after a one-minute cooldown. The account is already signed in while this step
-is pending, but the app keeps it on the confirmation screen until the code
-checks out.
+Signing up asks for a name, email address, password, age, gender, country and an explicit 18+ confirmation. The account is usable immediately: there is no six digit confirmation code, no resend step, and no mail provider to configure. Passwords are hashed and the `email_verified` flag is set on the new account so the rest of the app unlocks right away.
 
-There is no mail provider in the demo, so outside production the code comes
-back in the API response (`devCode`), is printed in the server log
-(`[hobymine] Email verification code for …`) and is shown on the confirmation
-screen.
+Only the forgot-password flow still hands out a six digit code. There is no mail provider in the demo, so outside production that reset code comes back in the API response (`devCode`), is printed in the server log (`[hobymine] Password reset code for …`) and is shown on screen.
 
 The seeded `demo@hobymine.app` account still exists for local testing (the
 `POST /api/auth/demo` endpoint), it is simply not offered in the interface.
@@ -170,7 +161,7 @@ The seeded `demo@hobymine.app` account still exists for local testing (the
 
 ## Demo walkthrough
 
-1. **Sign up** on the welcome screen, then enter the six digit confirmation code shown on screen to confirm your email (or sign in with an existing account), and create a second account on another device or browser.
+1. **Sign up** on the welcome screen (or sign in with an existing account), and create a second account on another device or browser.
 2. **Swipe right** on the other person from both accounts — the match celebration appears for whoever swipes second.
 3. Open the conversation and **send a message**. Typing indicators, read receipts and live updates work over Socket.io.
 4. Tap the **phone button** in the chat header to start a **1-on-1 voice call**. The other side gets an incoming call screen; accept to talk.
@@ -376,16 +367,14 @@ Errors use a consistent envelope:
 
 | Method | Path                 | Description                                      |
 | ------ | -------------------- | ------------------------------------------------ |
-| `POST` | `/auth/register`     | Create an account, return a JWT, and send the verification code |
+| `POST` | `/auth/register`     | Create an account and return a JWT               |
 | `POST` | `/auth/login`        | Sign in and return a JWT                         |
-| `POST` | `/auth/verify-email` | `{ email, code }` — confirm the sign up address   |
-| `POST` | `/auth/resend-verification` | `{ email }` — issue a new sign up code     |
 | `POST` | `/auth/forgot-password` | `{ email }` — start the password reset flow   |
 | `POST` | `/auth/reset-password`  | `{ email, code, password }` — set a new password |
 | `POST` | `/auth/demo`         | Sign in to the seeded test account (dev only)    |
 | `GET`  | `/auth/me`           | Current user (also available as `GET /me`)        |
 
-Registration requires a valid ISO 3166-1 alpha-2 `countryCode` (for example `"SG"` or `"JP"`), along with name, email, password, age, and gender, plus a **real, deliverable email address** — malformed and placeholder addresses are rejected with a clear message. The response carries `user.emailVerified: false` and, outside production, the `devCode` to redeem. Country changes on `PATCH /me` use the same code and automatically update the stored country anchor used by discovery.
+Registration requires a valid ISO 3166-1 alpha-2 `countryCode` (for example `"SG"` or `"JP"`), along with name, email, password, age, and gender, plus a **real, deliverable email address** — malformed and placeholder addresses are rejected with a clear message. The account is usable on creation (`user.emailVerified: true`); no confirmation code is issued or required. Country changes on `PATCH /me` use the same code and automatically update the stored country anchor used by discovery.
 
 ### Profile and discovery
 
@@ -503,7 +492,6 @@ The client connects with `auth: { token }`. The server authenticates the JWT, jo
 | `blocks`        | Mutual visibility barrier between two users                             |
 | `reports`       | Confidential moderation reports                                         |
 | `verifications` | Selfie verification attempts and status                                 |
-| `email_verifications` | One-time sign up codes (hashed, ten minute expiry)               |
 
 The schema is applied automatically on startup (`apps/api/src/db/schema.sql`), including indexes for discovery, unread messages, block lookups, and country matching. Existing PGlite/PostgreSQL installs are migrated in place: `country_code` is added if missing, the discovery filters are added to `preferences`, the legacy `is_demo` column becomes `is_bot`, and the old automated personas are deleted so only real accounts remain.
 

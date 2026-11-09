@@ -175,16 +175,6 @@ CREATE TABLE IF NOT EXISTS password_resets (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- One-time codes sent right after sign up to confirm the email address.
-CREATE TABLE IF NOT EXISTS email_verifications (
-  id         TEXT PRIMARY KEY,
-  user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  code_hash  TEXT NOT NULL,
-  attempts   INTEGER NOT NULL DEFAULT 0,
-  expires_at TIMESTAMPTZ NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
 -- Who looked at whose profile. Nothing is recorded in incognito mode.
 CREATE TABLE IF NOT EXISTS profile_views (
   id         TEXT PRIMARY KEY,
@@ -256,6 +246,12 @@ BEGIN
     UPDATE users SET email_verified = TRUE;
   END IF;
 END $$;
+
+-- Sign up no longer asks for an emailed code: every account is usable as soon
+-- as it is created. Existing accounts that never confirmed their address are
+-- unlocked, and the old code table is removed.
+UPDATE users SET email_verified = TRUE WHERE email_verified = FALSE;
+DROP TABLE IF EXISTS email_verifications;
 
 -- Lightweight migration for pausing / deactivating an account. A paused profile
 -- is hidden from discovery and every list, and signing in again reactivates it.

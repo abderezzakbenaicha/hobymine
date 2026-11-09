@@ -231,7 +231,7 @@ export const localAuth = {
     interestedIn: InterestedIn;
     /** Mandatory 18+ confirmation from the sign up checkbox. */
     ageConfirmed?: boolean;
-  }): Promise<{ token: string; user: MeUser; devCode: string }> => {
+  }): Promise<{ token: string; user: MeUser }> => {
     ensureSeeded();
     const users = getUsers();
     const normalizedEmail = input.email.toLowerCase().trim();
@@ -253,7 +253,7 @@ export const localAuth = {
       interests: [],
       photos: [],
       verified: false,
-      emailVerified: false,
+      emailVerified: true,
       plus: false,
       readReceipts: false,
       plusUntil: null,
@@ -278,7 +278,7 @@ export const localAuth = {
     saveUsers(users);
     const token = generateToken();
     setSession(token, newUser.id);
-    return { token, user: userToMeUser(newUser), devCode: generateDevCode() };
+    return { token, user: userToMeUser(newUser) };
   },
 
   /** Reload the current user from localStorage (used on socket reconnect). */
@@ -303,27 +303,6 @@ export const localAuth = {
     if (!user) throw new Error('Account not found');
     user.password = password;
     saveUsers(users);
-  },
-
-  /** Mark an email as verified. (`code` accepted for interface compatibility.) */
-  verifyEmail: async (email: string, _code: string): Promise<{ user: MeUser }> => {
-    ensureSeeded();
-    const users = getUsers();
-    const user = users.find((u) => u.email === email.toLowerCase().trim());
-    if (!user) throw new Error('Account not found');
-    user.emailVerified = true;
-    saveUsers(users);
-    return { user: userToMeUser(user) };
-  },
-
-  /** Issue a new verification code. (`code` not used in local demo.) */
-  resendVerification: async (_email: string): Promise<{ devCode?: string; alreadyVerified?: boolean }> => {
-    ensureSeeded();
-    const users = getUsers();
-    const user = users.find((u) => u.email === _email.toLowerCase().trim());
-    if (!user) return {};
-    if (user.emailVerified) return { alreadyVerified: true };
-    return { devCode: generateDevCode() };
   },
 
   /** Sign out — clear the local session. */

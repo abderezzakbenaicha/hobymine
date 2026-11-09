@@ -64,12 +64,10 @@ export function needsOnboarding(user: MeUser | null | undefined): boolean {
 }
 
 /**
- * Where a member should land: the sign in screen when signed out, the email
- * confirmation step until the sign up code is confirmed, then the profile
- * onboarding or the deck.
+ * Where a member should land: the sign in screen when signed out, then the
+ * profile onboarding or the deck.
  */
 export function landingRoute(user: MeUser | null | undefined): string {
   if (!user) return '/welcome';
-  if (!user.emailVerified) return '/verify-email';
   return needsOnboarding(user) ? '/onboarding' : '/discover';
 }

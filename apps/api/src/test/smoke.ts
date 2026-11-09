@@ -1032,42 +1032,22 @@ async function main(): Promise<void> {
       'registration records the legal acceptance',
     );
 
-    // ---------- Email verification ----------
+    // ---------- No email verification step ----------
     checkEqual(
       ((registered.body.user ?? {}) as Json).emailVerified,
-      false,
-      'a fresh account starts unverified',
+      true,
+      'a fresh account is usable straight away',
     );
     check(
-      typeof registered.body.devCode === 'string',
-      'registration hands back a demo verification code',
+      registered.body.devCode === undefined,
+      'registration does not hand back a verification code',
     );
 
-    const wrongCode = await request('/api/auth/verify-email', {
-      auth: false,
+    const verifyRoute = await request('/api/auth/verify-email', {
       method: 'POST',
       body: { email, code: '000000' },
     });
-    checkEqual(wrongCode.status, 400, 'a wrong verification code is rejected');
-
-    const verified = await request('/api/auth/verify-email', {
-      auth: false,
-      method: 'POST',
-      body: { email, code: String(registered.body.devCode ?? '') },
-    });
-    checkEqual(verified.status, 200, 'the verification code confirms the email');
-    checkEqual(
-      ((verified.body.user ?? {}) as Json).emailVerified,
-      true,
-      'the confirmed account is marked verified',
-    );
-
-    const reused = await request('/api/auth/verify-email', {
-      auth: false,
-      method: 'POST',
-      body: { email, code: String(registered.body.devCode ?? '') },
-    });
-    checkEqual(reused.status, 400, 'a verification code cannot be used twice');
+    checkEqual(verifyRoute.status, 404, 'the removed verification endpoint is gone');
 
     const newLogin = await request('/api/auth/login', {
       auth: false,
