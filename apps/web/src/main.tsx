@@ -27,11 +27,17 @@ startThemeSync();
 // Keep the safe-area variables in sync with the native window insets: the
 // status bar height changes with rotation, split screen and gesture bars.
 void refreshSafeArea();
+// The first layout pass can finish after the web bundle boots, so read again
+// once the native window has settled. The native side also pushes changes.
+window.setTimeout(() => void refreshSafeArea(), 250);
 window.addEventListener('resize', () => {
   void refreshSafeArea();
 });
 window.addEventListener('orientationchange', () => {
   void refreshSafeArea();
+});
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) void refreshSafeArea();
 });
 
 const container = document.getElementById('root');

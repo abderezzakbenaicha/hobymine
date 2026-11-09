@@ -519,7 +519,7 @@ export function ChatPage() {
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-canvas">
-      <header className="shrink-0 border-b border-white/[0.06] bg-canvas/85 backdrop-blur-2xl safe-top">
+      <header className="shrink-0 border-b border-white/[0.06] bg-canvas/85 backdrop-blur-2xl safe-left safe-right safe-top">
         <div className="flex min-h-[3.25rem] items-center gap-1 py-1.5 px-2 sm:gap-3 sm:px-4">
           <Link
             to="/matches"

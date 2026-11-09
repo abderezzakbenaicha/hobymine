@@ -33,12 +33,16 @@
     --shadow-card: 0 24px 80px -24px rgba(0, 0, 0, 0.9);
     --shadow-float: 0 16px 44px -16px rgba(0, 0, 0, 0.8);
 
+    /*
+     * Safe-area insets. The stylesheet defaults to the browser values; on
+     * Android the native helper overwrites them with the real window insets
+     * (already converted to CSS pixels). Keep a single declaration per side:
+     * a later `--safe-bottom: 0px` silently wiped the env() fallback before.
+     */
+    --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
-    /* Replaced at runtime with the real Android window insets. */
-    --safe-top: 0px;
-    --safe-bottom: 0px;
-    --safe-left: 0px;
-    --safe-right: 0px;
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
   }
 
   [data-theme='light'] {

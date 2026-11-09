@@ -642,7 +642,9 @@ The web app is packaged with **Capacitor 6** into a native Android shell. The AP
 
 ### App identity
 
-The Android application ID is `com.hobymine.app` and the launcher label is **HobyMine**. The current build is version 1.12.0 (versionCode 16). The release build output is `apps/web/android/app/build/outputs/apk/release/app-release.apk`; convenient copies are placed at the repository root as `HobyMine-release.apk` (release) and `HobyMine-debug.apk` (debug).
+The Android application ID is `com.hobymine.app` and the launcher label is **HobyMine**. The current build is version 1.13.1 (versionCode 18). The release build output is `apps/web/android/app/build/outputs/apk/release/app-release.apk`; convenient copies are placed at the repository root as `HobyMine-release.apk` (release) and `HobyMine-debug.apk` (debug).
+
+The Android shell draws edge to edge. A small native plugin (`HobymineDevice.java`) reports the status-bar, cutout and navigation-bar insets to the web layer, **converted from physical pixels to CSS pixels**; the app then applies them through the `--safe-top`/`--safe-bottom` variables. This keeps the top bar, bottom navigation and page content clear of the system bars on every screen density, including gesture and three-button navigation.
 
 Physical devices cannot use `localhost`, so the APK ships with the cloud API address. The build default is set in `apps/web/.env.production`:
 

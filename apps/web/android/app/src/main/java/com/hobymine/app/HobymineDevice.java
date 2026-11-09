@@ -45,10 +45,17 @@ public class HobymineDevice extends Plugin {
                 Insets bars = windowInsets.getInsets(
                     WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout()
                 );
-                top = bars.top;
-                bottom = bars.bottom;
-                left = bars.left;
-                right = bars.right;
+                // WindowInsets reports physical pixels; the web layer applies
+                // CSS pixels, which are density independent. Keeping the raw
+                // values made every high-density phone pad 2.5-3x too much.
+                if (bars.top != top || bars.bottom != bottom
+                    || bars.left != left || bars.right != right) {
+                    top = bars.top;
+                    bottom = bars.bottom;
+                    left = bars.left;
+                    right = bars.right;
+                    notifyInsetsChanged();
+                }
                 // The insets are not consumed: the WebView still lays out edge to
                 // edge, the web layer adds the padding.
                 return windowInsets;
@@ -62,15 +69,43 @@ public class HobymineDevice extends Plugin {
     @PluginMethod
     public void getInsets(PluginCall call) {
         try {
-            JSObject result = new JSObject();
-            result.put("top", top);
-            result.put("bottom", bottom);
-            result.put("left", left);
-            result.put("right", right);
-            call.resolve(result);
+            call.resolve(insetsInCssPixels());
         } catch (Exception error) {
             // Fall back to zero insets instead of failing the bridge call.
             call.resolve(new JSObject());
+        }
+    }
+
+    /**
+     * Converts the stored physical-pixel insets into CSS pixels. The WebView
+     * reports one CSS pixel per density-independent pixel, so dividing by the
+     * display density keeps the app clear of the bars on every screen without
+     * shrinking the layout on high-density phones.
+     */
+    private JSObject insetsInCssPixels() {
+        float density = 1f;
+        try {
+            density = getContext().getResources().getDisplayMetrics().density;
+        } catch (Exception ignored) {
+            // A detached context keeps the 1:1 fallback.
+        }
+        if (density <= 0f) density = 1f;
+
+        JSObject result = new JSObject();
+        result.put("top", Math.round(top / density));
+        result.put("bottom", Math.round(bottom / density));
+        result.put("left", Math.round(left / density));
+        result.put("right", Math.round(right / density));
+        return result;
+    }
+
+    /** Pushes fresh insets to the web layer after rotation or a bar change. */
+    private void notifyInsetsChanged() {
+        try {
+            if (getBridge() == null) return;
+            notifyListeners("insetsChanged", insetsInCssPixels());
+        } catch (Exception ignored) {
+            // The web layer also refreshes on resize, so a dropped event is safe.
         }
     }
 

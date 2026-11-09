@@ -207,7 +207,10 @@ export function VoiceCallOverlay() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.18 }}
-                className="pointer-events-none absolute inset-x-3 top-[calc(env(safe-area-inset-top)+4rem)] z-[60] mx-auto flex max-w-sm items-start gap-2.5 rounded-2xl border border-amber-400/35 bg-amber-400/15 px-3.5 py-3 text-left shadow-2xl backdrop-blur-xl"
+                style={{
+                  top: 'calc(max(var(--safe-top, 0px), env(safe-area-inset-top, 0px)) + 4rem)',
+                }}
+                className="pointer-events-none absolute inset-x-3 z-[60] mx-auto flex max-w-sm items-start gap-2.5 rounded-2xl border border-amber-400/35 bg-amber-400/15 px-3.5 py-3 text-left shadow-2xl backdrop-blur-xl"
                 role="status"
                 aria-live="assertive"
               >

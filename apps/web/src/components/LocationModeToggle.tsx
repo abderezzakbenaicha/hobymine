@@ -40,6 +40,8 @@ export function LocationModeToggle({
             type="button"
             onClick={() => onChange(option.value)}
             aria-pressed={active}
+            aria-label={option.label}
+            title={option.label}
             className={cn(
               'flex items-center justify-center gap-1.5 rounded-xl font-semibold transition',
               compact ? 'px-2.5 py-1.5 text-[0.6875rem]' : 'px-3 py-2.5 text-xs',
@@ -49,7 +51,11 @@ export function LocationModeToggle({
             )}
           >
             <option.icon className={cn('shrink-0', compact ? 'h-3.5 w-3.5' : 'h-4 w-4')} />
-            {option.label}
+            {/* Very narrow phones get icon-only controls so the page title
+                keeps its full width instead of ellipsizing. */}
+            <span className={compact ? 'max-[389px]:hidden' : undefined}>
+              {option.label}
+            </span>
           </button>
         );
       })}
