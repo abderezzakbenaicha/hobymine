@@ -642,9 +642,9 @@ The web app is packaged with **Capacitor 6** into a native Android shell. The AP
 
 ### App identity
 
-The Android application ID is `com.hobymine.app` and the launcher label is **HobyMine**. The current build is version 1.13.2 (versionCode 19). The release build output is `apps/web/android/app/build/outputs/apk/release/app-release.apk`; convenient copies are placed at the repository root as `HobyMine-release.apk` (release) and `HobyMine-debug.apk` (debug).
+The Android application ID is `com.hobymine.app` and the launcher label is **HobyMine**. The current build is version 1.13.3 (versionCode 20). The release build output is `apps/web/android/app/build/outputs/apk/release/app-release.apk`; convenient copies are placed at the repository root as `HobyMine-release.apk` (release) and `HobyMine-debug.apk` (debug).
 
-The Android shell draws edge to edge. A small native plugin (`HobymineDevice.java`) reports the status-bar, cutout and navigation-bar insets to the web layer, **converted from physical pixels to CSS pixels** and clamped to a realistic maximum; the app then applies them through the `--safe-top`/`--safe-bottom` variables (each capped in CSS as a second safety net). This keeps the top bar, bottom navigation and page content clear of the system bars on every screen density, including gesture and three-button navigation.
+The Android shell draws edge to edge on Android 15+, where the platform enforces it. A small native plugin (`HobymineDevice.java`) reports the status-bar, cutout and navigation-bar insets to the web layer, **converted from physical pixels to CSS pixels** and clamped to a realistic maximum. On older releases, where the framework already lays the WebView out inside the system bars, the plugin reports zero so the padding is not applied twice; that keeps the header at the top and the bottom navigation at the bottom instead of leaving empty bands.
 
 Physical devices cannot use `localhost`, so the APK ships with the cloud API address. The build default is set in `apps/web/.env.production`:
 

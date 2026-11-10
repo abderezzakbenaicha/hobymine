@@ -37,6 +37,13 @@ public class HobymineDevice extends Plugin {
     private int left = 0;
     private int right = 0;
 
+    // The last values actually sent to the web layer, so repeated layout
+    // passes do not spam the bridge.
+    private int lastTop = -1;
+    private int lastBottom = -1;
+    private int lastLeft = -1;
+    private int lastRight = -1;
+
     @Override
     public void load() {
         super.load();
@@ -54,18 +61,18 @@ public class HobymineDevice extends Plugin {
                 // WindowInsets reports physical pixels; the web layer applies
                 // CSS pixels, which are density independent. Keeping the raw
                 // values made every high-density phone pad 2.5-3x too much.
-                if (bars.top != top || bars.bottom != bottom
-                    || bars.left != left || bars.right != right) {
-                    top = bars.top;
-                    bottom = bars.bottom;
-                    left = bars.left;
-                    right = bars.right;
-                    notifyInsetsChanged();
-                }
-                // The insets are not consumed: the WebView still lays out edge to
-                // edge, the web layer adds the padding.
+                top = bars.top;
+                bottom = bars.bottom;
+                left = bars.left;
+                right = bars.right;
+                notifyInsetsChanged();
+                // The insets are not consumed: an edge-to-edge window still
+                // lays the WebView out behind the bars.
                 return windowInsets;
             });
+            // The WebView is attached after load(); its position on screen
+            // decides whether the window already sits inside the system bars.
+            decor.getViewTreeObserver().addOnGlobalLayoutListener(this::notifyInsetsChanged);
             ViewCompat.requestApplyInsets(decor);
         } catch (Exception error) {
             // A missing window only costs the safe-area padding, never the app.
@@ -87,8 +94,23 @@ public class HobymineDevice extends Plugin {
      * reports one CSS pixel per density-independent pixel, so dividing by the
      * display density keeps the app clear of the bars on every screen without
      * shrinking the layout on high-density phones.
+     *
+     * <p>When the window is <em>not</em> drawn edge to edge (Android 14 and
+     * below with our theme), the framework already lays the WebView out inside
+     * the status and navigation bars. Reporting the insets then would add a
+     * second set of padding and leave large empty bands above the header and
+     * below the bottom navigation, so they are reported as zero.
      */
     private JSObject insetsInCssPixels() {
+        JSObject result = new JSObject();
+        if (!isWebViewEdgeToEdge()) {
+            result.put("top", 0);
+            result.put("bottom", 0);
+            result.put("left", 0);
+            result.put("right", 0);
+            return result;
+        }
+
         float density = 1f;
         try {
             density = getContext().getResources().getDisplayMetrics().density;
@@ -97,7 +119,6 @@ public class HobymineDevice extends Plugin {
         }
         if (density <= 0f) density = 1f;
 
-        JSObject result = new JSObject();
         // The caps are a last line of defence: a status bar is never taller
         // than ~3rem in CSS pixels, so a larger value means we were handed
         // physical pixels and must not let it blow the layout apart.
@@ -106,6 +127,30 @@ public class HobymineDevice extends Plugin {
         result.put("left", toCssPixels(left, density, MAX_HORIZONTAL_CSS));
         result.put("right", toCssPixels(right, density, MAX_HORIZONTAL_CSS));
         return result;
+    }
+
+    /**
+     * True when the WebView starts at the very top-left of the screen, which
+     * only happens when the window draws behind the system bars. A WebView
+     * that starts below the status bar is laid out by the framework already
+     * inside the safe area.
+     */
+    private boolean isWebViewEdgeToEdge() {
+        try {
+            View webView = getBridge() != null ? getBridge().getWebView() : null;
+            if (webView == null || !webView.isAttachedToWindow()) {
+                // Before the WebView exists there is nothing to double-pad;
+                // report the real insets until the first layout settles.
+                return true;
+            }
+            int[] location = new int[2];
+            webView.getLocationOnScreen(location);
+            return location[0] <= 1 && location[1] <= 1;
+        } catch (Exception ignored) {
+            // If the position cannot be read, prefer the edge-to-edge path:
+            // a stray gap is safer than content hidden under the bars.
+            return true;
+        }
     }
 
     /**
@@ -122,7 +167,20 @@ public class HobymineDevice extends Plugin {
     private void notifyInsetsChanged() {
         try {
             if (getBridge() == null) return;
-            notifyListeners("insetsChanged", insetsInCssPixels());
+            JSObject current = insetsInCssPixels();
+            int nextTop = current.getInteger("top", 0);
+            int nextBottom = current.getInteger("bottom", 0);
+            int nextLeft = current.getInteger("left", 0);
+            int nextRight = current.getInteger("right", 0);
+            if (nextTop == lastTop && nextBottom == lastBottom
+                && nextLeft == lastLeft && nextRight == lastRight) {
+                return;
+            }
+            lastTop = nextTop;
+            lastBottom = nextBottom;
+            lastLeft = nextLeft;
+            lastRight = nextRight;
+            notifyListeners("insetsChanged", current);
         } catch (Exception ignored) {
             // The web layer also refreshes on resize, so a dropped event is safe.
         }
