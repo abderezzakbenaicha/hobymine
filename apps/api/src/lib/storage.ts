@@ -51,7 +51,9 @@ export async function publishUpload(filePath: string, mimeType: string): Promise
         apikey: env.supabaseSecretKey,
         Authorization: `Bearer ${env.supabaseSecretKey}`,
         'Content-Type': normalizeMimeType(mimeType) || 'application/octet-stream',
-        'Cache-Control': 'max-age=31536000',
+        // User media can be replaced or deleted, so keep the CDN window short;
+        // a year-long cache would keep removed clips reachable after deletion.
+        'Cache-Control': 'public, max-age=3600',
         'x-upsert': 'false',
       },
       // Buffer is a Uint8Array, which fetch accepts as a body.
