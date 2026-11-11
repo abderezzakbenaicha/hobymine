@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { authRequired } from '../lib/auth.js';
 import { ApiError, asyncHandler } from '../lib/http.js';
-import { publishUpload, storageEnabled } from '../lib/storage.js';
+import { storeUpload } from '../lib/storage.js';
 import { displayFileName, mimeKind, upload } from '../lib/uploads.js';
 
 export const uploadsRouter = Router();
@@ -20,18 +20,9 @@ uploadsRouter.post(
     }
 
     // Cloud hosts wipe their disk on every deploy, so prefer Supabase Storage.
-    // If the bucket is misconfigured we keep the local path rather than losing
-    // the upload entirely; the warning in the logs explains what to fix.
-    let url = `/uploads/${file.filename}`;
-    if (storageEnabled() && file.path) {
-      try {
-        url = await publishUpload(file.path, file.mimetype);
-      } catch (error) {
-        console.warn(
-          `[hobymine] Upload stored locally because Supabase Storage failed: ${(error as Error).message}`,
-        );
-      }
-    }
+    // A misconfigured bucket falls back to the local path instead of losing
+    // the upload; the warning in the logs explains what to fix.
+    const url = await storeUpload(file);
 
     res.status(201).json({
       url,

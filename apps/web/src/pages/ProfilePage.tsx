@@ -16,7 +16,6 @@ import {
   Monitor,
   Moon,
   Pencil,
-  Server,
   Settings2,
   ShieldCheck,
   Sparkles,
@@ -32,12 +31,11 @@ import { InterestPill } from '../components/InterestPill';
 import { PhotoCarousel } from '../components/PhotoCarousel';
 import { ProfileHighlights } from '../components/ProfileHighlights';
 import { ProfileSheet, useProfileViewer } from '../components/ProfileSheet';
-import { ServerSettingsModal } from '../components/ServerSettingsModal';
 import { Switch } from '../components/Switch';
 import { VerifiedBadge } from '../components/VerifiedBadge';
 import { VoiceIntroPlayer } from '../components/VoiceIntro';
-import { apiBaseLabel, getApiBase, useApiBase } from '../lib/apiConfig';
-import { api, ApiClientError, useConnectionState } from '../lib/api';
+import { getApiBase } from '../lib/apiConfig';
+import { api, ApiClientError } from '../lib/api';
 import {
   backgroundAlertsEnabled,
   updateBackgroundAlerts,
@@ -95,9 +93,6 @@ export function ProfilePage() {
   const [views, setViews] = useState<PublicUser[]>([]);
   const themeMode = useThemeStore((state) => state.mode);
   const setThemeMode = useThemeStore((state) => state.setMode);
-  const apiBase = useApiBase();
-  const connection = useConnectionState();
-  const [serverSettingsOpen, setServerSettingsOpen] = useState(false);
   const profileViewer = useProfileViewer();
 
   const loadViews = useCallback(async (): Promise<void> => {
@@ -711,46 +706,6 @@ export function ProfilePage() {
           </section>
 
           <section className="panel p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <h2 className="text-sm font-semibold text-white">Server connection</h2>
-                <p className="mt-1 truncate text-[0.6875rem] text-ink-300">
-                  {apiBaseLabel(apiBase)}
-                </p>
-                <p className="mt-1 text-[0.625rem] text-ink-500">
-                  {connection.status === 'online'
-                    ? 'Connected'
-                    : connection.status === 'offline'
-                      ? 'Not reachable — retrying automatically'
-                      : 'Not checked yet'}
-                </p>
-              </div>
-              <span
-                className={cn(
-                  'mt-1 h-2.5 w-2.5 shrink-0 rounded-full',
-                  connection.status === 'online'
-                    ? 'bg-neon shadow-[0_0_10px_rgb(var(--neon)/0.7)]'
-                    : connection.status === 'offline'
-                      ? 'bg-rose'
-                      : 'bg-ink-500',
-                )}
-                aria-hidden
-              />
-            </div>
-            <button
-              type="button"
-              onClick={() => setServerSettingsOpen(true)}
-              className="btn-subtle mt-3 w-full"
-            >
-              <Server className="h-3.5 w-3.5" />
-              Change server address
-            </button>
-            <p className="mt-2 text-[0.625rem] leading-relaxed text-ink-500">
-              If the backend moved to a new Wi-Fi address, update it here — no reinstall needed.
-            </p>
-          </section>
-
-          <section className="panel p-5">
             <div className="min-w-0">
               <h2 className="text-sm font-semibold text-white">Appearance</h2>
               <p className="mt-1 text-[0.6875rem] leading-relaxed text-ink-400">
@@ -944,11 +899,6 @@ export function ProfilePage() {
             HobyMine is an independent portfolio demo. Not affiliated with any dating brand. All
             profiles and photos are generated for demonstration.
           </p>
-
-          <ServerSettingsModal
-            open={serverSettingsOpen}
-            onClose={() => setServerSettingsOpen(false)}
-          />
         </div>
       </div>
 

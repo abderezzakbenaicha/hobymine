@@ -15,6 +15,11 @@ process.env.PGLITE_DIR = '';
 process.env.DATABASE_URL = '';
 process.env.JWT_SECRET = 'hobymine-smoke-test-secret';
 process.env.PORT = '0';
+// The smoke test never talks to Supabase: uploads stay on local disk so the
+// run cannot create or delete objects in the production bucket.
+process.env.SUPABASE_URL = '';
+process.env.SUPABASE_SECRET_KEY = '';
+process.env.SUPABASE_STORAGE_BUCKET = '';
 
 import { createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
@@ -35,6 +40,26 @@ const SMOKE_PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=',
   'base64',
 );
+
+/** A one-second silent WAV, enough to exercise the voice-intro upload path. */
+const SMOKE_WAV = ((): Buffer => {
+  const samples = 8000;
+  const buffer = Buffer.alloc(44 + samples * 2);
+  buffer.write('RIFF', 0);
+  buffer.writeUInt32LE(36 + samples * 2, 4);
+  buffer.write('WAVE', 8);
+  buffer.write('fmt ', 12);
+  buffer.writeUInt32LE(16, 16);
+  buffer.writeUInt16LE(1, 20);
+  buffer.writeUInt16LE(1, 22);
+  buffer.writeUInt32LE(8000, 24);
+  buffer.writeUInt32LE(16000, 28);
+  buffer.writeUInt16LE(2, 32);
+  buffer.writeUInt16LE(16, 34);
+  buffer.write('data', 36);
+  buffer.writeUInt32LE(samples * 2, 40);
+  return buffer;
+})();
 
 function check(condition: unknown, label: string): void {
   if (condition) {
@@ -673,6 +698,25 @@ async function main(): Promise<void> {
       !((afterDelete.photos ?? []) as string[]).includes(uploadedUrl),
       'removed photo is gone from the profile',
     );
+
+    // ---------- Voice introduction ----------
+    const voiceForm = new FormData();
+    voiceForm.append('file', new Blob([SMOKE_WAV], { type: 'audio/wav' }), 'smoke.wav');
+    const voiceUpload = await request('/api/uploads', { method: 'POST', form: voiceForm });
+    checkEqual(voiceUpload.status, 201, 'voice intro upload succeeds');
+    const voiceUrl = String(voiceUpload.body.url ?? '');
+    const voiceSave = await request('/api/me/voice-intro', {
+      method: 'PUT',
+      body: { url: voiceUrl, duration: 1 },
+    });
+    checkEqual(voiceSave.status, 200, 'voice intro saves after its upload');
+    checkEqual(
+      (((voiceSave.body.user ?? {}) as Json).voiceIntro as Json | null)?.url,
+      voiceUrl,
+      'voice intro is attached to the profile',
+    );
+    const voiceRemove = await request('/api/me/voice-intro', { method: 'DELETE' });
+    checkEqual(voiceRemove.status, 200, 'voice intro can be removed');
 
     const prefsPatch = await request('/api/me/preferences', {
       method: 'PATCH',

@@ -10,7 +10,8 @@ import { ApiError, asyncHandler } from '../lib/http.js';
 import { isBlockedBetween, areMatched } from '../lib/matches.js';
 import { emitToUser } from '../lib/realtime.js';
 import { isPlus, toIso, toPublicUser } from '../lib/serialize.js';
-import { upload, uploadsDir, mimeKind } from '../lib/uploads.js';
+import { upload, mimeKind } from '../lib/uploads.js';
+import { deleteUpload, isStorageUrl, storeUpload } from '../lib/storage.js';
 import { findUser, getMe, getPreferences } from '../lib/users.js';
 import {
   interestsSchema,
@@ -21,7 +22,6 @@ import {
   tagListSchema,
 } from '../lib/validation.js';
 import type { PreferenceRow, PublicUser, UserRow } from '../types.js';
-import path from 'node:path';
 
 export const usersRouter = Router();
 
@@ -272,15 +272,11 @@ usersRouter.delete(
     const files = [
       ...me.photos,
       ...verification.rows.map((row) => row.selfie_url ?? ''),
-    ].filter((url) => url.startsWith('/uploads/'));
+    ].filter((url) => url.startsWith('/uploads/') || isStorageUrl(url));
 
     await sql('DELETE FROM users WHERE id = $1', [userId]);
 
-    await Promise.all(
-      files.map((url) =>
-        unlink(path.join(uploadsDir, url.slice('/uploads/'.length))).catch(() => undefined),
-      ),
-    );
+    await Promise.all(files.map((url) => deleteUpload(url)));
 
     res.json({ deleted: true });
   }),
@@ -305,7 +301,9 @@ usersRouter.post(
       throw new ApiError(400, 'You can upload up to 6 photos', 'photo_limit');
     }
 
-    const url = `/uploads/${path.basename(file.path)}`;
+    // Cloud hosts wipe their disk on every deploy, so photos go to Supabase
+    // Storage too; a failure falls back to the local path.
+    const url = await storeUpload(file);
     const photos = [...me.photos, url];
     await sql('UPDATE users SET photos = $1::jsonb WHERE id = $2', [
       JSON.stringify(photos),
@@ -370,10 +368,7 @@ usersRouter.delete(
       userId,
     ]);
 
-    if (url.startsWith('/uploads/')) {
-      const filename = url.slice('/uploads/'.length);
-      await unlink(path.join(uploadsDir, filename)).catch(() => undefined);
-    }
+    await deleteUpload(url);
 
     const updated = await getMe(userId);
     res.json({ user: updated });
@@ -392,7 +387,7 @@ usersRouter.put(
     const input = parseBody(
       z.object({
         url: publicUrlSchema.refine(
-          (value) => value.startsWith('/uploads/'),
+          (value) => value.startsWith('/uploads/') || isStorageUrl(value),
           'Upload the recording before saving it',
         ),
         duration: z.coerce
@@ -417,12 +412,10 @@ usersRouter.put(
       [input.url, input.duration, userId],
     );
 
-    // Replacing the clip should not leave the previous file on disk.
+    // Replacing the clip should not leave the previous file behind.
     const previous = me.voice_intro_url;
-    if (previous && previous !== input.url && previous.startsWith('/uploads/')) {
-      await unlink(path.join(uploadsDir, previous.slice('/uploads/'.length))).catch(
-        () => undefined,
-      );
+    if (previous && previous !== input.url) {
+      await deleteUpload(previous);
     }
 
     const updated = await getMe(userId);
@@ -446,11 +439,7 @@ usersRouter.delete(
       [userId],
     );
 
-    if (me.voice_intro_url && me.voice_intro_url.startsWith('/uploads/')) {
-      await unlink(
-        path.join(uploadsDir, me.voice_intro_url.slice('/uploads/'.length)),
-      ).catch(() => undefined);
-    }
+    await deleteUpload(me.voice_intro_url);
 
     const updated = await getMe(userId);
     res.json({ user: updated });

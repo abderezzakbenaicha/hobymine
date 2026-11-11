@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import type { ApiErrorBody } from '../types';
-import { getApiBase, normalizeApiBase, rememberApiBase, subscribeApiBase } from './apiConfig';
+import { getApiBase, normalizeApiBase, subscribeApiBase } from './apiConfig';
 
 // Maximum time (ms) to wait for an API response before failing. This prevents
 // the sign-in (and other) spinners from spinning forever when the device
@@ -54,9 +54,6 @@ function markOnline(base: string): void {
   // A response from a base the user has since replaced says nothing about the
   // current one; ignore it.
   if (base !== getApiBase()) return;
-  // Remember what actually works so the app can fail over to it later if the
-  // PC's LAN address changes.
-  rememberApiBase(base);
   setConnection({ status: 'online', base, checkedAt: Date.now(), lastError: null });
 }
 
@@ -122,9 +119,9 @@ function networkErrorMessage(base: string, timedOut: boolean, offline: boolean):
     return `This device is offline. Reconnect to Wi-Fi to reach the HobyMine server${where}.`;
   }
   if (timedOut) {
-    return `The HobyMine server${where} did not respond in time. Check that the backend is running, then retry or update the server address in Settings.`;
+    return `The HobyMine server${where} did not respond in time. Check your connection and try again.`;
   }
-  return `Cannot reach the HobyMine server${where}. Check that the backend is running and that this device is on the same Wi-Fi, or update the server address in Settings.`;
+  return `Cannot reach the HobyMine server${where}. Check your internet connection and try again.`;
 }
 
 interface FetchOptions {

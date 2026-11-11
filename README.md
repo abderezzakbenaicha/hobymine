@@ -252,10 +252,11 @@ API does not answer. Work through this list in order.
 2. **Same network?** The phone and the PC must be on the same Wi-Fi. The API
    prints the address to use, for example `http://192.168.1.33:4000`. `localhost`
    in the app points at the phone, not at your PC.
-3. **Correct address on the device?** Open **Welcome → Server** (or
-   **Profile → Server connection**), tap **Auto-detect on Wi-Fi**, or type the
-   printed LAN URL. A rebuilt APK only changes the *default*; the saved value
-   wins.
+3. **Correct address in the app?** The app always talks to the address baked in
+   at build time (`VITE_API_URL`, or the production Railway service in the
+   shipping APK). There is no in-app server setting to change any more, so a
+   local development build must be rebuilt with the printed LAN URL when the
+   PC's address changes.
 4. **Windows Firewall.** `start-server.cmd` runs `scripts/allow-firewall.ps1`
    once and creates the `HobyMine API (TCP 4000)` inbound rule. Run it in an
    elevated PowerShell if the rule is missing:
@@ -263,10 +264,9 @@ API does not answer. Work through this list in order.
    Note that a Wi-Fi network set to **Public** blocks more traffic; the rule is
    created for all profiles, but a guest/isolated Wi-Fi can still block
    phone-to-PC traffic (client isolation).
-5. **Address changed.** A new router lease changes the LAN IP. The app retries,
-   probes addresses it used before, then scans the subnet, so it normally
-   recovers on its own; the manual fallback is **Profile → Server connection**.
-   The durable fix is a DHCP reservation for this PC in the router.
+5. **Address changed.** A new router lease changes the LAN IP, and a local
+   development build then needs to be rebuilt with the new address. The durable
+   fix is a DHCP reservation for this PC in the router.
 6. **API crashes at startup with `PANIC: could not locate a valid checkpoint record`
    or `RuntimeError: Aborted()`.** The embedded database was interrupted while
    writing (typically a `tsx watch` restart or a killed process) and PostgreSQL
@@ -339,7 +339,7 @@ The API reads `.env` from the repository root and from `apps/api/.env` (root fir
 | `PGLITE_MEMORY` | `0`                         | Set to `1` for a throwaway in-memory database                   |
 | `VITE_API_URL`  | _(same origin)_             | API base URL when the web app is hosted separately              |
 
-`VITE_API_URL` is read by Vite from `apps/web/.env` (or the process environment) at build time. In local development the Vite proxy forwards `/api`, `/uploads`, and `/socket.io` to port 4000, so no value is needed. In the packaged Android app it is only the **default** server address: the user can change it at runtime under **Welcome → Server** or **Profile → Server connection** (stored in `localStorage`), so a changing LAN IP does not require a rebuild.
+`VITE_API_URL` is read by Vite from `apps/web/.env` (or the process environment) at build time. In local development the Vite proxy forwards `/api`, `/uploads`, and `/socket.io` to port 4000, so no value is needed. The packaged Android app bakes the address in at build time; there is no runtime server setting any more, so pointing a build somewhere else means rebuilding it.
 
 ---
 
@@ -642,7 +642,7 @@ The web app is packaged with **Capacitor 6** into a native Android shell. The AP
 
 ### App identity
 
-The Android application ID is `com.hobymine.app` and the launcher label is **HobyMine**. The current build is version 1.13.3 (versionCode 20). The release build output is `apps/web/android/app/build/outputs/apk/release/app-release.apk`; convenient copies are placed at the repository root as `HobyMine-release.apk` (release) and `HobyMine-debug.apk` (debug).
+The Android application ID is `com.hobymine.app` and the launcher label is **HobyMine**. The current build is version 1.13.4 (versionCode 21). The release build output is `apps/web/android/app/build/outputs/apk/release/app-release.apk`; convenient copies are placed at the repository root as `HobyMine-release.apk` (release) and `HobyMine-debug.apk` (debug).
 
 The Android shell draws edge to edge on Android 15+, where the platform enforces it. A small native plugin (`HobymineDevice.java`) reports the status-bar, cutout and navigation-bar insets to the web layer, **converted from physical pixels to CSS pixels** and clamped to a realistic maximum. On older releases, where the framework already lays the WebView out inside the system bars, the plugin reports zero so the padding is not applied twice; that keeps the header at the top and the bottom navigation at the bottom instead of leaving empty bands.
 
@@ -654,13 +654,7 @@ VITE_API_URL=https://hobymine-api-production.up.railway.app
 
 That service is described in [DEPLOY.md](DEPLOY.md): Express + Socket.io on Railway (serving the built PWA from the same origin), Postgres and uploads in Supabase, no dependency on the development PC. The app works from any network while the Railway service is up.
 
-The address baked into the APK is only a default. If the service is renamed or the API moves, open the app and go to **Welcome → Server** (signed out) or **Profile → Server connection** (signed in). The sheet offers three ways to recover:
-
-1. **Automatic.** While the backend is unreachable, the connection banner retries every few seconds and also probes the addresses this device has used successfully before. As soon as one answers (checked against `GET /api/health`, which must report `service: "hobymine-api"`), the app switches to it, reconnects Socket.io and restores the session. Resuming the app or coming back to Wi-Fi triggers an immediate probe instead of waiting for the timer.
-2. **Auto-detect on Wi-Fi.** When no known address works, this checks the usual candidates and then scans the local `/24` subnet (port 4000) for a HobyMine server, with live progress. Tap a result to use it right away. This is what recovers a fresh install whose baked address is wrong.
-3. **Manual.** Enter the new address such as `http://192.168.1.42:4000`, use **Test** to verify it, then **Save**.
-
-The choice is stored on the device and used immediately by both the REST client and Socket.io.
+The address baked into the APK is fixed at build time. If the service is renamed or the API moves, update `VITE_API_URL` and rebuild the app; there is no in-app server setting to edit. While the backend is unreachable, the connection banner retries every few seconds on its own, and resuming the app or coming back to Wi-Fi triggers an immediate probe instead of waiting for the timer.
 
 Start the API — or install the [always-on backend](#always-on-local-backend)
 once so it starts with Windows — and keep the phone on the same Wi-Fi.
@@ -837,7 +831,7 @@ Update `VITE_API_URL` in `apps/web/.env.production` (or set it in the shell), th
 
 ### Emulator note
 
-For an Android emulator, the host machine is reachable at `10.0.2.2`. Build with `VITE_API_URL=http://10.0.2.2:4000` instead, or change the address at runtime under **Server settings**. Without a build-time URL, the native app falls back to the cloud API address in `apps/web/src/lib/apiConfig.ts` (`https://hobymine-api-production.up.railway.app`).
+For an Android emulator, the host machine is reachable at `10.0.2.2`. Build with `VITE_API_URL=http://10.0.2.2:4000`; the address is baked in, so it cannot be changed after the APK is installed. Without a build-time URL, the native app falls back to the cloud API address in `apps/web/src/lib/apiConfig.ts` (`https://hobymine-api-production.up.railway.app`).
 
 ### Cloud API
 

@@ -142,8 +142,9 @@ npm run build
 npm run apk:release        # or the documented Android build command
 ```
 
-Users can still override the address under **Settings → Server connection** if
-the service is ever renamed.
+The API address is baked into the build from `VITE_API_URL`; there is no
+in-app server setting. If the service is ever renamed, update that value and
+rebuild the app.
 
 ## 5. Move existing uploads into Supabase Storage
 

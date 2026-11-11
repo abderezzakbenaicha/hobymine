@@ -67,8 +67,8 @@ export function disconnectSocket(): void {
   currentBase = null;
 }
 
-// When the server address changes (server settings screen), move the live
-// socket to the new host instead of waiting for the next app launch.
+// The API address is fixed at build time, so this only exists as a safety net
+// if the connection module ever needs to move the live socket to a new host.
 subscribeApiBase(() => {
   const token = currentToken;
   if (!socket || !token) return;

@@ -8,7 +8,6 @@ import {
   Lock,
   Mail,
   MessageCircle,
-  Server,
   ShieldCheck,
   Sparkles,
   User,
@@ -20,7 +19,6 @@ import { CountryPicker } from '../components/CountryPicker';
 import { LegalDocument, type LegalKind } from '../components/LegalDocument';
 import { Logo, LogoMark } from '../components/Logo';
 import { Modal } from '../components/Modal';
-import { ServerSettingsModal } from '../components/ServerSettingsModal';
 import { checkEmail } from '../lib/email';
 import { landingRoute } from '../lib/profile';
 import { cn } from '../lib/utils';
@@ -85,7 +83,6 @@ export function WelcomePage() {
   const [interestedIn, setInterestedIn] = useState<InterestedIn>('everyone');
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [legalDoc, setLegalDoc] = useState<LegalKind | null>(null);
-  const [serverSettingsOpen, setServerSettingsOpen] = useState(false);
 
   const switchMode = (next: Mode): void => {
     clearError();
@@ -719,15 +716,6 @@ export function WelcomePage() {
                 Safety
               </Link>
               <span className="h-1 w-1 rounded-full bg-ink-700" />
-              <button
-                type="button"
-                onClick={() => setServerSettingsOpen(true)}
-                className="flex items-center gap-1 transition hover:text-neon"
-              >
-                <Server className="h-3 w-3" />
-                Server
-              </button>
-              <span className="h-1 w-1 rounded-full bg-ink-700" />
               <span className="flex items-center gap-1">
                 <LogoMark className="h-3.5 w-3.5" />
                 v1.5
@@ -744,11 +732,6 @@ export function WelcomePage() {
       >
         {legalDoc && <LegalDocument kind={legalDoc} className="pb-6" />}
       </Modal>
-
-      <ServerSettingsModal
-        open={serverSettingsOpen}
-        onClose={() => setServerSettingsOpen(false)}
-      />
     </div>
   );
 }

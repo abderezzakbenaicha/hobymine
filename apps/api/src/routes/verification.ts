@@ -5,6 +5,7 @@ import { sql } from '../db/index.js';
 import { authRequired, type AuthRequest } from '../lib/auth.js';
 import { ApiError, asyncHandler } from '../lib/http.js';
 import { mimeKind, upload } from '../lib/uploads.js';
+import { storeUpload } from '../lib/storage.js';
 import { getMe } from '../lib/users.js';
 import { parseBody } from '../lib/validation.js';
 
@@ -27,7 +28,7 @@ verificationRouter.post(
       if (mimeKind(req.file.mimetype) !== 'image') {
         throw new ApiError(415, 'Selfie must be an image', 'unsupported_file_type');
       }
-      selfieUrl = `/uploads/${req.file.filename}`;
+      selfieUrl = await storeUpload(req.file);
     } else {
       const input = parseBody(fallbackSchema, req.body ?? {});
       selfieUrl = input.selfieUrl ?? '/seed/alex-1.svg';

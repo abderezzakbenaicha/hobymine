@@ -1,7 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { readFile, unlink } from 'node:fs/promises';
+import path from 'node:path';
 import { env } from '../config.js';
-import { extensionForMime, normalizeMimeType } from './uploads.js';
+import { extensionForMime, normalizeMimeType, uploadsDir } from './uploads.js';
 
 /**
  * Durable upload storage.
@@ -69,6 +70,89 @@ export async function publishUpload(filePath: string, mimeType: string): Promise
 
   await unlink(filePath).catch(() => {});
   return publicUrl(key);
+}
+
+/**
+ * Publishes a file that multer wrote to disk and falls back to its local URL
+ * when Supabase is not configured or rejects the upload. Callers get a URL that
+ * is always usable on this deployment.
+ */
+export async function storeUpload(file: {
+  path: string;
+  filename: string;
+  mimetype: string;
+}): Promise<string> {
+  const local = `/uploads/${file.filename}`;
+  if (!storageEnabled() || !file.path) return local;
+
+  try {
+    return await publishUpload(file.path, file.mimetype);
+  } catch (error) {
+    console.warn(
+      `[hobymine] Upload stored locally because Supabase Storage failed: ${(error as Error).message}`,
+    );
+    return local;
+  }
+}
+
+function storageKeyFromUrl(url: string): string | null {
+  const prefix = `${env.supabaseUrl}/storage/v1/object/public/${storageBucket}/`;
+  if (!env.supabaseUrl || !url.startsWith(prefix)) return null;
+  const key = url.slice(prefix.length).split('?')[0];
+  return key || null;
+}
+
+/**
+ * True when `url` points at an object in this project's public bucket. Used to
+ * validate media links (photos, voice introductions) without accepting an
+ * arbitrary remote URL.
+ */
+export function isStorageUrl(url: string | null | undefined): boolean {
+  return Boolean(url && storageKeyFromUrl(url));
+}
+
+/**
+ * Deletes a previously uploaded file, from Supabase Storage or the local disk.
+ *
+ * Cleanup runs after the database row is updated, so a missing object or a
+ * failed request must never fail the caller: every error is logged and
+ * swallowed.
+ */
+export async function deleteUpload(url: string | null | undefined): Promise<void> {
+  if (!url) return;
+
+  const key = storageKeyFromUrl(url);
+  if (key) {
+    if (!storageEnabled()) return;
+    try {
+      const response = await fetch(
+        `${env.supabaseUrl}/storage/v1/object/${storageBucket}`,
+        {
+          method: 'DELETE',
+          headers: {
+            apikey: env.supabaseSecretKey,
+            Authorization: `Bearer ${env.supabaseSecretKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ prefixes: [key] }),
+        },
+      );
+      if (!response.ok) {
+        console.warn(
+          `[hobymine] Could not delete ${key} from Supabase Storage (HTTP ${response.status}).`,
+        );
+      }
+    } catch (error) {
+      console.warn(
+        `[hobymine] Supabase Storage delete failed: ${(error as Error).message}`,
+      );
+    }
+    return;
+  }
+
+  if (url.startsWith('/uploads/')) {
+    await unlink(path.join(uploadsDir, url.slice('/uploads/'.length))).catch(() => undefined);
+  }
 }
 
 /** Creates the bucket when it does not exist yet. Safe to call on boot. */
